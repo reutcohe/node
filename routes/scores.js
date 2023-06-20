@@ -1,0 +1,84 @@
+const express= require("express");
+const { ScoreModel, validateScore } = require("../models/scoreModel");
+const { authToken } = require("../auth/authToken");
+const router = express.Router();
+
+router.get("/" , (req,res)=> {
+  res.json({msg:"score work !"})
+})
+
+router.get("/allScores" , async(req,res)=> {
+
+  try{
+    let data = await ScoreModel.find({})
+    res.json(data);
+  }
+  catch(err){
+    console.log(err);
+    res.status(500).json({msg:"there error try again later",err})
+  }
+})
+
+
+router.get("/getMaxScore" , async(req,res)=> {
+  try{
+    let data = await ScoreModel.find({}).limit(5).sort({ score: -1 , date_created: 1});
+    res.json(data);
+  }
+  catch(err){
+    console.log(err);
+    res.status(500).json({msg:"there error try again later",err})
+  }
+})
+  
+router.get("/getScoresByUserId/:id" , async(req,res)=> {
+
+  try{
+    let idUser= req.params.id;
+    let data;
+    data = await ScoreModel.find({user_id:idUser});
+    res.json(data);
+  }
+  catch(err){
+    console.log(err);
+    res.status(500).json({msg:"there error try again later",err})
+  }
+})
+
+router.post("/", authToken, async(req,res) => {
+  let validBody = validateScore(req.body);
+  if(validBody.error){
+    res.status(400).json(validBody.error.details)
+  }
+  try{
+     console.log(req.tokenData._id)
+    let score = new ScoreModel(req.body);
+    score.user_id = req.tokenData._id;
+    await score.save();
+    res.json(score);
+  }
+  catch(err){
+    console.log(err)
+    res.status(500).json({msg:"err",err})
+  }
+})
+
+router.delete("/:idDel",authToken,async(req,res) => {
+  try{
+    let idDel= req.params.idDel
+    let data ;
+    if(req.tokenData.role == "admin"){
+      data = await ScoreModel.deleteOne({_id:idDel});
+    }
+    else{
+      data = await ScoreModel.deleteOne({_id:idDel,user_id:req.tokenData._id});
+    }
+    res.json(data);
+  }
+  catch(err){
+    console.log(err)
+    res.status(500).json({msg:"err",err})
+  }
+})
+
+module.exports = router;
