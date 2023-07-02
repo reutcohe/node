@@ -7,7 +7,7 @@ const scoreSchema = new mongoose.Schema({
     date_created: {
         type: Date, default: Date.now()
     },
-    user_id:String
+    user_id:{type:mongoose.ObjectId, default:null}
 })
 exports.ScoreModel = mongoose.model("scores", scoreSchema)
 

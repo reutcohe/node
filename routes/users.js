@@ -121,7 +121,7 @@ router.post("/login", async (req, res) => {
   }
 })
 
-router.put("/:editId", authToken, async (req, res) => {
+router.put("/:editId", authTokenAdmin, async (req, res) => {
   let validBody = UserValid(req.body);
   if (validBody.error) {
     return res.status(400).json(validBody.error.details);
